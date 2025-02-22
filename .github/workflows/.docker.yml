@@ -63,10 +63,8 @@ jobs:
       run: |
         echo "Deploying to server"
         ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          cd /home/ec2-user/
-          git clone https://github.com/ishubishu/my-nest-app.git my-nest-app
-          cd my-nest-app
           docker pull ishubishu/my-nest-app:latest
-          docker-compose down
-          docker-compose up --build
+          docker stop my-nest-app || true
+          docker rm my-nest-app || true
+          docker run -d -p 3000:3000 --name my-nest-app your-dockerhub-username/my-nest-app:latest
         EOF
