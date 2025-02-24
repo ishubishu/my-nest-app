@@ -13,23 +13,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Setup SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
       - name: Deploy to Server
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}
-            cd /home/ec2-user/
-            if [ -d "my-nest-app" ]; then
-              cd my-nest-app
-              git pull origin main
-            else
-              git clone https://github.com/ishubishu/my-nest-app.git my-nest-app
-              cd my-nest-app
-            fi
-            docker pull ishubishu/my-nest-app:latest
-            docker-compose down
-            docker-compose up -d --build
+          ssh -i ${{ secrets.SSH_PRIVATE_KEY }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} | tee ssh-debug.log
