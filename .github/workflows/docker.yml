@@ -1,40 +1,67 @@
-deploy:
-  runs-on: ubuntu-latest
-  needs: build
-  steps:
-  - name: Checkout code
-    uses: actions/checkout@v2
+name: CI/CD Pipeline
 
-  - name: Set up SSH key for authentication
-    run: |
-      mkdir -p ~/.ssh
-      echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
-      eval $(ssh-agent -s)
-      ssh-add ~/.ssh/id_rsa
-      ssh-add -l  # Debugging: Verify key is added
+on:
+  push:
+    branches:
+      - main
 
-  - name: Deploy to server
-    run: |
-      echo "Deploying to server"
-      ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "bash -s" <<EOF
-        set -e  # Exit on error
-        cd /home/ec2-user/
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-        # Ensure the repo is fresh
-        if [ -d "my-nest-app" ]; then
-          echo "Removing existing my-nest-app directory..."
-          rm -rf my-nest-app
-        fi
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-        echo "Cloning repository..."
-        git clone https://github.com/ishubishu/my-nest-app.git my-nest-app
-        cd my-nest-app
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
 
-        echo "Pulling latest Docker image..."
-        docker pull ishubishu/my-nest-app:latest
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+    - name: Build Docker image
+      run: |
+        docker build -t ishubishu/my-nest-app:latest .
+        docker images
+    - name: Log into Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-        echo "Restarting Docker containers..."
-        docker-compose down || true  # Ignore errors if no running containers
-        docker-compose up --build -d  # Run in detached mode
-      EOF
+    - name: Push Docker image
+      run: |
+        docker push ishubishu/my-nest-app:latest
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH key for authentication
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        
+        # Start the SSH agent
+        eval $(ssh-agent -s)
+        ssh-add ~/.ssh/id_rsa
+        
+        # Debugging: List SSH keys added to the agent
+        ssh-add -l
+    - name: Deploy to server
+      run: |
+        echo "Deploying to server"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} | ls
+          cd /home/ec2-user/
+          git clone https://github.com/ishubishu/my-nest-app.git my-nest-app
+          cd my-nest-app
+          docker pull ishubishu/my-nest-app:latest
+          docker-compose down
+          docker-compose up --build
