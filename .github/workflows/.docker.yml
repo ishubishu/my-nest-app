@@ -22,14 +22,14 @@ jobs:
       - name: Deploy to Server
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}
-            cd /home/ec2-user/
-            if [ -d "my-nest-app" ]; then
-              cd my-nest-app
-              git pull origin main
-            else
-              git clone https://github.com/ishubishu/my-nest-app.git my-nest-app
-              cd my-nest-app
-            fi
-            docker pull ishubishu/my-nest-app:latest
-            docker-compose down
-            docker-compose up -d --build
+            # cd /home/ec2-user/
+            # if [ -d "my-nest-app" ]; then
+            #   cd my-nest-app
+            #   git pull origin main
+            # else
+            #   git clone https://github.com/ishubishu/my-nest-app.git my-nest-app
+            #   cd my-nest-app
+            # fi
+            # docker pull ishubishu/my-nest-app:latest
+            # docker-compose down
+            # docker-compose up -d --build
