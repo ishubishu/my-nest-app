@@ -21,7 +21,6 @@ jobs:
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
       - name: Deploy to Server
         run: |
-          cat ~/.ssh/id_rsa
           ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}
             # cd /home/ec2-user/
             # if [ -d "my-nest-app" ]; then
