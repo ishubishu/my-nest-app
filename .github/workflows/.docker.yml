@@ -22,3 +22,5 @@ jobs:
       - name: Deploy to Server
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}
+      - name: Show SSH Debug Log
+        run: cat ssh-debug.log
