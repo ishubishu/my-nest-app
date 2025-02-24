@@ -1,25 +1,35 @@
+
 name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main  # Change this to your branch if needed
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Set up SSH key
+      - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{secrets.SERVER_IP}} >> ~/.ssh/known_hosts
-
-      - name: Deploy files to EC2
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+      - name: Deploy to Server
         run: |
-          rsync -avz -e "ssh -i ~/.ssh/id_rsa" ./ ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/ubuntu/deploy/
+          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}
+            cd /home/ec2-user/
+            if [ -d "my-nest-app" ]; then
+              cd my-nest-app
+              git pull origin main
+            else
+              git clone https://github.com/ishubishu/my-nest-app.git my-nest-app
+              cd my-nest-app
+            fi
+            docker pull ishubishu/my-nest-app:latest
+            docker-compose down
+            docker-compose up -d --build
