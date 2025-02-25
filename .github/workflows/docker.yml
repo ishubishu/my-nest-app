@@ -29,11 +29,4 @@ jobs:
         echo "Deploying to server"
         cd ~/.ssh
         ls -al
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          cd /home/ec2-user/
-          git clone https://github.com/ishubishu/my-nest-app.git my-nest-app
-          cd my-nest-app
-          docker pull ishubishu/my-nest-app:latest
-          docker-compose down
-          docker-compose up --build
-        EOF
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}
