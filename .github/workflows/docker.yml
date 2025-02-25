@@ -58,10 +58,11 @@ jobs:
     - name: Deploy to server
       run: |
         echo "Deploying to server"
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} | ls
-            cd /home/ec2-user/
-            git clone https://github.com/ishubishu/my-nest-app.git my-nest-app
-            cd my-nest-app
-            docker pull ishubishu/my-nest-app:latest
-            docker-compose down
-            docker-compose up --build
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          cd /home/ec2-user/
+          git clone https://github.com/ishubishu/my-fullstack-app.git my-fullstack-app
+          cd my-fullstack-app
+          docker pull ishubishu/my-fullstack-app:latest
+          docker-compose down
+          docker-compose up --build
+        EOF
