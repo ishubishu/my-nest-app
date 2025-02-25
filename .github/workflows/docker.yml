@@ -27,7 +27,7 @@ jobs:
     - name: Deploy to server
       run: |
         echo "Deploying to server"
-        cd ~
+        cd ~/.ssh
         ls -al
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           cd /home/ec2-user/
