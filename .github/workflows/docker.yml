@@ -1,26 +1,40 @@
-name: CI/CD Pipeline
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main
+      - main  # Change this if needed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
 
-    - name: Set up SSH key for authentication
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.EC2_HOST }} > ~/.ssh/known_hosts       
-    - name: Deploy to server
-      run: |
-        echo "Deploying to server"
-        cd ~/.ssh
-        ls -al
-        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Add EC2 to Known Hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{secrets.SERVER_USER}}@${{ secrets.SERVER_IP }} << 'EOF'
+            cd /home/ec2-user/
+            git pull origin main
+            docker stop my-nest-app || true
+            docker rm my-nest-app || true
+
+            # Build and run a new Docker container
+            docker build -t my-nest-app .
+            docker run -d --name my-nest-app -p 3000:3000 my-nest-app
+
+            # Remove unused Docker images
+            docker image prune -af
+          EOF
