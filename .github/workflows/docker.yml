@@ -16,14 +16,8 @@ jobs:
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 777 ~/.ssh/id_rsa
-        
-        # Start the SSH agent
-        eval $(ssh-agent -s)
-        ssh-add ~/.ssh/id_rsa
-        
-        # Debugging: List SSH keys added to the agent
-        ssh-add -l
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H host.example.com > ~/.ssh/known_hosts       
     - name: Deploy to server
       run: |
         echo "Deploying to server"
