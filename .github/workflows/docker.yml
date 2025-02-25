@@ -58,7 +58,8 @@ jobs:
     - name: Deploy to server
       run: |
         echo "Deploying to server"
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+        ls -al
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           cd /home/ec2-user/
           git clone https://github.com/ishubishu/my-fullstack-app.git my-fullstack-app
           cd my-fullstack-app
