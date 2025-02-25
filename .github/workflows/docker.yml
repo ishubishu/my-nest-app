@@ -29,4 +29,4 @@ jobs:
         echo "Deploying to server"
         cd ~/.ssh
         ls -al
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}
+        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}
