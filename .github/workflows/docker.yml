@@ -31,4 +31,4 @@ jobs:
 
       - name: Update ECS Service
         run: |
-          aws ecs update-service --cluster DemoCluster --service nest-app-service --force-new-deployment
+          aws ecs update-service --cluster DemoCluster --service new-service-alb --force-new-deployment
